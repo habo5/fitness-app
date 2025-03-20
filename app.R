@@ -15,7 +15,7 @@ library(httr)
 library(stringr)
 
 
-# ✅ Load the Nutrient_Calculator function from the RDS file
+#  Load the Nutrient_Calculator function from the RDS file
 Nutrient_Calculator <- read_rds("FOOD nutrition calculator.Rds")
 # UI
 ui <- fluidPage(
@@ -107,13 +107,13 @@ server <- function(input, output, session) {
                                    wellPanel(
                                      textInput("food_input", "Enter a food name:", placeholder = "e.g., pasta, apple, chicken"),
                                      br(),
-                                     # ✅ Dropdown for selecting only one nutrient
+                                     #  Dropdown for selecting only one nutrient
                                      selectInput("nutrient_select", "Select a Nutrient:", 
                                                  choices = c("Energy", "Protein", "Calcium.Ca", "Iron.Fe", "Carbohydrate.by.diff", 
                                                              "Caffeine", "Water", "Total.Sugars", "Total.lipid.fat", 
                                                              "Magnesium.Mg", "Potassium.K", "Sodium.Na", "Zinc.Zn"),
-                                                 selected = "Energy",  # Default selection
-                                                 multiple = FALSE),  # ❌ Only one choice at a time
+                                                 selected = "Energy",  
+                                                 multiple = FALSE), 
                                      
                                      br(),
                                      h4("Nutritional Value"),
@@ -262,49 +262,49 @@ server <- function(input, output, session) {
   })
   
   # Daily Nutrition Calculator
-  # ✅ Reactive Function: Fetches food nutrition using `Nutrient_Calculator()`
+  #  Reactive Function: Fetches food nutrition using `Nutrient_Calculator()`
   food_nutrition <- reactive({
     req(input$food_input)  # Ensure input is not empty
     Nutrient_Calculator(input$food_input)  # Fetch data (returns a table)
   })
   
-  # ✅ Render Selected Nutrient Value (Extract Single Value)
+  #  Render Selected Nutrient Value (Extract Single Value)
   output$nutrition_value <- renderText({
     nutrition_values <- food_nutrition()
     
-    # 🔹 If no data found, return message
+    #  If no data found, return message
     if (is.null(nutrition_values) || nrow(nutrition_values) == 0) {
       return("No data found for the entered food.")
     }
     
-    # 🔹 Get the user-selected nutrient
+    #  Get the user-selected nutrient
     selected_nutrient <- input$nutrient_select
     
-    # 🔹 Ensure the selected nutrient exists in the table
+    #  Ensure the selected nutrient exists in the table
     if (!(selected_nutrient %in% colnames(nutrition_values))) {
       return("Nutrient not available for this food.")
     }
     
-    # 🔹 Extract the first numeric value from the selected column
+    #  Extract the first numeric value from the selected column
     nutrient_value <- nutrition_values[[selected_nutrient]][1]  # First row of selected nutrient
     
-    # 🔹 Ensure it's numeric before displaying
+    #  Ensure it's numeric before displaying
     if (is.na(nutrient_value) || !is.numeric(nutrient_value)) {
       return("Nutrient data is not available.")
     }
     
-    # 🔹 Return formatted value
+    #  Return formatted value
     paste(selected_nutrient, ":", round(nutrient_value, 2))
   })
   
 
-  # ✅ Make `nutrition_values` Reactive
+  #  Make `nutrition_values` Reactive
   nutrition_values <- reactive({
     req(input$food_input)  # Ensure food input is provided
     Nutrient_Calculator(input$food_input)  # Fetch nutrition data
   })
   
-  # ✅ Reactive Values for Food Log
+  #  Reactive Values for Food Log
   food_log <- reactiveVal(data.frame(
     Food = character(), 
     Calories = numeric(), 
@@ -315,20 +315,20 @@ server <- function(input, output, session) {
     stringsAsFactors = FALSE
   ))
   
-  # ✅ Observe Event for "Add Food" Button
+  #  Observe Event for "Add Food" Button
   observeEvent(input$add_food, {
     req(input$food_input, input$food_servings)  # Ensure inputs are not empty
     
-    # ✅ Get reactive food nutrient data
+    #  Get reactive food nutrient data
     food_data <- nutrition_values()
     
-    # ✅ Check if food data was found
+    #  Check if food data was found
     if (is.null(food_data) || nrow(food_data) == 0) {
       showNotification("Food not found!", type = "error")
       return()
     }
     
-    # ✅ Ensure required columns exist (Handle missing columns)
+    #  Ensure required columns exist (Handle missing columns)
     required_columns <- c("Energy", "Protein", "Carbohydrate.by.diff", "Total.lipid.fat")
     for (col in required_columns) {
       if (!(col %in% colnames(food_data))) {
@@ -336,7 +336,7 @@ server <- function(input, output, session) {
       }
     }
     
-    # ✅ Create a new food entry with scaled nutrition based on servings
+    #  Create a new food entry with scaled nutrition based on servings
     new_entry <- data.frame(
       Food = input$food_input,
       Calories = round(food_data$Energy[1] * input$food_servings, 2),
@@ -346,12 +346,12 @@ server <- function(input, output, session) {
       Servings = input$food_servings
     )
     
-    # ✅ Append the new entry to the existing log
+    #  Append the new entry to the existing log
     updated_log <- bind_rows(food_log(), new_entry)  # Uses bind_rows() for better reactivity
-    food_log(updated_log)  # ✅ Updates the reactive object correctly
+    food_log(updated_log)  #  Updates the reactive object correctly
   })
   
-  # ✅ Render Food Log Table - Updates Immediately
+  # Render Food Log Table - Updates Immediately
   output$nutrition_table <- renderDT({
     datatable(food_log(), options = list(pageLength = 5, autoWidth = TRUE))
   })
